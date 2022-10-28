@@ -14,12 +14,17 @@ class Home extends StatefulWidget {
 class _HomeState extends State<Home> {
 
   List _listaTarefas = [];
-  //Método para recuperar os caminho que o ios ou android usa para armazenar os arquivos no dispositivo do usuario
+  //Método para para armazenar os arquivos no dispositivo do usuario
+
+  //Método que retorna um file. Colocamos o Future pois, o File vai ser retornado no futuro
+  Future<File>_getFile() async{
+    final diretorio = await getApplicationDocumentsDirectory();
+    return File( "${diretorio.path}/dados.json" );
+  }
+
   _salvarArquivo() async {
 
-    final diretorio = await getApplicationDocumentsDirectory();
-    var arquivo = File( "${diretorio.path}/dados.json" );
-
+    var arquivo = await _getFile();
     //Criar dados
     Map<String, dynamic> tarefa = Map();
     tarefa["titulo"] = "Ir ao mercado";
@@ -43,14 +48,40 @@ class _HomeState extends State<Home> {
     arquivo.writeAsString( dados );
 
     //print("Caminho: " + diretorio.path );
+  }
+
+  //Lendo o arquivo que foi salvo
+  _lerArquivo() async {
+    //Otrry Catch usamos geralmente para fazer leitura e escrita de arquivos
+    //O try catch tenta executar um códogo, caso não conseguir, podemos mostrar uma msg de erro
+    try{
+
+      final arquivo = await _getFile();
+      return arquivo.readAsString();
+
+    }catch(e){
+      return ArgumentError.notNull();
+    }
+  }
+
+  //Usamos o initState quando precisamos fazer alguma alteração antes de chamar o método build
+  @override
+  void initState() {
+    super.initState();
+    //Usamos o .then para recupperar os dados
+    _lerArquivo().then( (dados){
+      setState(() {
+        _listaTarefas = jsonDecode(dados);
+      });
+    } );
 
   }
 
   @override
   Widget build(BuildContext context) {
 
-    _salvarArquivo();
-
+    //_salvarArquivo();
+    print("itens: "+ _listaTarefas.toString());
     return Scaffold(
       appBar: AppBar(
         title: Text("Lista de tarefas"),
@@ -105,7 +136,7 @@ class _HomeState extends State<Home> {
                 itemBuilder: (context, index){
 
                   return ListTile(
-                    title: Text( _listaTarefas[index] ),
+                    title: Text( _listaTarefas[index]["titulo"] ),
                   );
 
                 }
