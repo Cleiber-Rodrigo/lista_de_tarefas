@@ -14,6 +14,7 @@ class Home extends StatefulWidget {
 class _HomeState extends State<Home> {
 
   List _listaTarefas = [];
+  TextEditingController _controllerTarefa = TextEditingController();
   //Método para para armazenar os arquivos no dispositivo do usuario
 
   //Método que retorna um file. Colocamos o Future pois, o File vai ser retornado no futuro
@@ -21,27 +22,25 @@ class _HomeState extends State<Home> {
     final diretorio = await getApplicationDocumentsDirectory();
     return File( "${diretorio.path}/dados.json" );
   }
+  //Método que salva as tarefas no app
+  _salvarTarefa(){
+    String textoDigitado = _controllerTarefa.text;
 
+    //Criar dados
+    Map<String, dynamic> tarefa = Map();
+    tarefa["titulo"] = textoDigitado;
+    tarefa["realizada"] = false;
+    setState(() {
+      _listaTarefas.add( tarefa );
+    });
+    _salvarArquivo();
+    _controllerTarefa.text='';
+
+  }
+  //Método que salva os arquivos no dispositivo
   _salvarArquivo() async {
 
     var arquivo = await _getFile();
-    //Criar dados
-    Map<String, dynamic> tarefa = Map();
-    tarefa["titulo"] = "Ir ao mercado";
-    tarefa["realizada"] = false;
-    _listaTarefas.add( tarefa );
-    /*
-    No caso do Map acima, criaria bjetos assim:
-    {
-    titulo: Ir ao mercado
-    realizada: false
-    }
-    {
-    titulo: estudar
-    realizada: true
-    }
-    ...
-    */
 
     //Convertendo dados para json
     String dados = json.encode( _listaTarefas );
@@ -80,8 +79,8 @@ class _HomeState extends State<Home> {
   @override
   Widget build(BuildContext context) {
 
-    //_salvarArquivo();
-    print("itens: "+ _listaTarefas.toString());
+    _salvarArquivo();
+    //print("itens: "+ _listaTarefas.toString());
     return Scaffold(
       appBar: AppBar(
         title: Text("Lista de tarefas"),
@@ -100,6 +99,7 @@ class _HomeState extends State<Home> {
                   return AlertDialog(
                     title: Text("Adicionar Tarefa"),
                     content: TextField(
+                      controller: _controllerTarefa,
                       decoration: InputDecoration(
                           labelText: "Digite sua tarefa"
                       ),
@@ -115,8 +115,7 @@ class _HomeState extends State<Home> {
                       FlatButton(
                         child: Text("Salvar"),
                         onPressed: (){
-                          //salvar
-
+                          _salvarTarefa();
                           Navigator.pop(context);
                         },
                       )
@@ -134,11 +133,21 @@ class _HomeState extends State<Home> {
             child: ListView.builder(
                 itemCount: _listaTarefas.length,
                 itemBuilder: (context, index){
-
+                  /*
                   return ListTile(
                     title: Text( _listaTarefas[index]["titulo"] ),
+                  );*/
+                  //O value é true ou false, então definimos ele como [index][realizada] para ele receber o valor configurado no realizada
+                  return CheckboxListTile(
+                    title: Text( _listaTarefas[index]["titulo"] ),
+                      value: _listaTarefas[index]["realizada"],
+                      onChanged: (valorAlterado){
+                        setState(() {
+                          _listaTarefas[index]["realizada"] = valorAlterado;
+                        });
+                        _salvarArquivo();
+                      },
                   );
-
                 }
             ),
           )
