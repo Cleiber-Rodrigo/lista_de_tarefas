@@ -79,23 +79,53 @@ class _HomeState extends State<Home> {
   //Para não ficar muito grande no body, eu posso ao invés de passar o CheckboxListTile como uma função anônima, posso passar ele como um método
   //que retorna o Widget CheckboxListTile. Para isso, preciso passar o context e o index como parâmetro
   Widget criarItemLista(context, index){
-    return CheckboxListTile(
-      title: Text( _listaTarefas[index]["titulo"] ),
-      value: _listaTarefas[index]["realizada"],
-      onChanged: (valorAlterado){
-        setState(() {
-          _listaTarefas[index]["realizada"] = valorAlterado;
-        });
-        _salvarArquivo();
-      },
+
+    final item = _listaTarefas[index]["titulo"];
+
+    return Dismissible(
+        key: Key(item),
+        direction: DismissDirection.endToStart,
+        onDismissed: (direction){  //Removendo item da lista
+          _listaTarefas.removeAt(index);
+          _salvarArquivo();
+        },
+        background: Container(
+          color: Colors.red,
+          padding: EdgeInsets.all(16),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.end,
+            children: <Widget>[
+              Icon(
+                Icons.delete,
+                color: Colors.white,
+              )
+            ],
+          ),
+        ),
+        child: CheckboxListTile(
+          title: Text( _listaTarefas[index]['titulo'] ),
+          value: _listaTarefas[index]['realizada'],
+          onChanged: (valorAlterado){
+
+            setState(() {
+              _listaTarefas[index]['realizada'] = valorAlterado;
+            });
+
+            _salvarArquivo();
+
+          },
+        )
     );
+
   }
+
 
   @override
   Widget build(BuildContext context) {
 
-    _salvarArquivo();
-    //print("itens: "+ _listaTarefas.toString());
+    //_salvarArquivo();
+    print("itens: " + _listaTarefas.toString() );
+
     return Scaffold(
       appBar: AppBar(
         title: Text("Lista de tarefas"),
@@ -130,6 +160,7 @@ class _HomeState extends State<Home> {
                       FlatButton(
                         child: Text("Salvar"),
                         onPressed: (){
+                          //salvar
                           _salvarTarefa();
                           Navigator.pop(context);
                         },
@@ -147,7 +178,7 @@ class _HomeState extends State<Home> {
           Expanded(
             child: ListView.builder(
                 itemCount: _listaTarefas.length,
-                itemBuilder: criarItemLista;
+                itemBuilder: criarItemLista
             ),
           )
         ],
