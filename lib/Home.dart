@@ -76,6 +76,21 @@ class _HomeState extends State<Home> {
 
   }
 
+  //Para não ficar muito grande no body, eu posso ao invés de passar o CheckboxListTile como uma função anônima, posso passar ele como um método
+  //que retorna o Widget CheckboxListTile. Para isso, preciso passar o context e o index como parâmetro
+  Widget criarItemLista(context, index){
+    return CheckboxListTile(
+      title: Text( _listaTarefas[index]["titulo"] ),
+      value: _listaTarefas[index]["realizada"],
+      onChanged: (valorAlterado){
+        setState(() {
+          _listaTarefas[index]["realizada"] = valorAlterado;
+        });
+        _salvarArquivo();
+      },
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
 
@@ -132,23 +147,7 @@ class _HomeState extends State<Home> {
           Expanded(
             child: ListView.builder(
                 itemCount: _listaTarefas.length,
-                itemBuilder: (context, index){
-                  /*
-                  return ListTile(
-                    title: Text( _listaTarefas[index]["titulo"] ),
-                  );*/
-                  //O value é true ou false, então definimos ele como [index][realizada] para ele receber o valor configurado no realizada
-                  return CheckboxListTile(
-                    title: Text( _listaTarefas[index]["titulo"] ),
-                      value: _listaTarefas[index]["realizada"],
-                      onChanged: (valorAlterado){
-                        setState(() {
-                          _listaTarefas[index]["realizada"] = valorAlterado;
-                        });
-                        _salvarArquivo();
-                      },
-                  );
-                }
+                itemBuilder: criarItemLista;
             ),
           )
         ],
