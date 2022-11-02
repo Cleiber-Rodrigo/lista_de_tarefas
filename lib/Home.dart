@@ -14,6 +14,8 @@ class Home extends StatefulWidget {
 class _HomeState extends State<Home> {
 
   List _listaTarefas = [];
+  //Map para guardar o ítem removido
+  Map<String, dynamic> _ultimaTarefaRemovida = Map();
   TextEditingController _controllerTarefa = TextEditingController();
   //Método para para armazenar os arquivos no dispositivo do usuario
 
@@ -83,11 +85,34 @@ class _HomeState extends State<Home> {
     final item = _listaTarefas[index]["titulo"];
 
     return Dismissible(
-        key: Key(item),
+      //Essa estrutura DateTime.now().microsecondsSinceEpoch.toString() gera sempre números diferentes a cada milisegundo
+      //Temos que utilizá-la pois para defazer a ação de exclusão de um item, tenho que utilizar sempre uma chave diferente
+        key: Key(DateTime.now().microsecondsSinceEpoch.toString()),
         direction: DismissDirection.endToStart,
-        onDismissed: (direction){  //Removendo item da lista
+        onDismissed: (direction){
+          //Recuperando o último item
+          _ultimaTarefaRemovida = _listaTarefas[index];
+          //Removendo item da lista
           _listaTarefas.removeAt(index);
           _salvarArquivo();
+          //Criando a snackbar
+          final snackbar = SnackBar(
+            backgroundColor: Colors.black,
+              duration: Duration(seconds: 10),
+              content: Text("Tarefa removida!!"),
+            action: SnackBarAction(
+              label: "Desfazer",
+              textColor: Colors.red,
+              onPressed: (){
+                //Inserindo novamente o item removido
+                setState(() {
+                  _listaTarefas.insert(index, _ultimaTarefaRemovida);
+                });
+                _salvarArquivo();
+              },
+            ),
+          );
+          Scaffold.of(context).showSnackBar(snackbar); //Estrutura para exibir o SnackBar
         },
         background: Container(
           color: Colors.red,
@@ -129,12 +154,12 @@ class _HomeState extends State<Home> {
     return Scaffold(
       appBar: AppBar(
         title: Text("Lista de tarefas"),
-        backgroundColor: Colors.purple,
+        backgroundColor: Colors.red,
       ),
       floatingActionButtonLocation: FloatingActionButtonLocation.endFloat,
       floatingActionButton: FloatingActionButton(
           child: Icon(Icons.add),
-          backgroundColor: Colors.purple,
+          backgroundColor: Colors.red,
           onPressed: (){
 
             showDialog(
